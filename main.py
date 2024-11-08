@@ -1,35 +1,62 @@
 import json
 import csv
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 
 from sheep import Sheep
 from wolf import Wolf
 
 
+def ini_filename_valid(filename):
+    if not filename.lower().endswith(".ini"):
+        raise ArgumentTypeError("The configuration file must be an INI file.")
+    return filename
+
+
+def positive_int_valid(value):
+    if not value.lstrip("-").isdigit():
+        raise ArgumentTypeError("The number of rounds must be an integer.")
+    elif int(value) < 1:
+        raise ArgumentTypeError("The number of rounds must be greater than zero.")
+    return int(value)
+
+
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", nargs=1, metavar="FILE",
+    parser.add_argument("-c", "--config", type=ini_filename_valid, metavar="FILE",
                         help="An auxiliary configuration file, where %(metavar)s stands for a filename")
-    parser.add_argument("-l", "--log", nargs=1, metavar="LEVEL",
-                        help="Record events to a log, where %(metavar)s stands for a log level - DEBUG(10), INFO(20), "
-                             "WARNING(20), ERROR(20), or CRITICAL(50)")
-    parser.add_argument("-r", "--rounds", nargs=1, default=50, metavar="NUM",
+    parser.add_argument("-l", "--log", metavar="LEVEL",
+                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        help="Record events to a log, where %(metavar)s stands for a log level (DEBUG, INFO, WARNING, "
+                             "ERROR, or CRITICAL)")
+    parser.add_argument("-r", "--rounds", type=positive_int_valid, default=50, metavar="NUM",
                         help="The maximum number of rounds, where %(metavar)s denotes an integer")
-    parser.add_argument("-s", "--sheep", nargs=1, default=15, metavar="NUM",
+    parser.add_argument("-s", "--sheep", type=positive_int_valid, default=15, metavar="NUM",
                         help="The number of sheep, where %(metavar)s denotes an integer;")
     parser.add_argument("-w", "--wait", action="store_true",
                         help="Introduce a pause after displaying basic information about the status of the simulation "
                              "at the end of each round until a key is pressed")
     args = parser.parse_args()
 
-    max_rounds = 50
-    herd_size = 15
-    wolf_move_distance = 1.0
-    sheep_move_distance = 0.5
-    position_limit = 10.0
+    if args.config:
+        # TODO: Load the configuration file and use it to set the simulation parameters
+        pass
+    else:
+        sheep_position_limit = 10.0
+        sheep_move_distance = 0.5
+        wolf_move_distance = 1.0
 
-    sheep_herd = [Sheep(position_limit, sheep_move_distance) for _ in range(herd_size)]
+    if args.log:
+        # TODO: Implement logging with the specified level
+        pass
+    else:
+        # TODO: Implement logging with the specified level
+        pass
+
+    max_rounds = args.rounds
+    herd_size = args.sheep
+
+    sheep_herd = [Sheep(sheep_position_limit, sheep_move_distance) for _ in range(herd_size)]
     wolf = Wolf(wolf_move_distance)
 
     animal_positions_by_round = []
@@ -65,7 +92,11 @@ def main():
 
         alive_sheep_number_by_round.append(alive_sheep_number)
 
-    # TODO: Save the data to the files after every round
+        # TODO: The task mentions pressing any key to continue instead of just enter, correct if necessary
+        if args.wait:
+            input("Press any key to continue...")
+
+    # TODO: Save the data at the end of every round, not just at the end of the simulation, if necessary
     with open("pos.json", "w", encoding="utf-8") as file:
         json.dump(animal_positions_by_round, file, indent=4)
 
