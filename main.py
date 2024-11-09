@@ -8,13 +8,13 @@ from sheep import Sheep
 from wolf import Wolf
 
 
-def ini_filename_valid(filename):
+def valid_ini_filename_arg(filename):
     if not filename.lower().endswith(".ini"):
         raise ArgumentTypeError("The configuration file must be an INI file.")
     return filename
 
 
-def positive_int_valid(value):
+def valid_positive_int_arg(value):
     if not value.lstrip("-").isdigit():
         raise ArgumentTypeError("The number of rounds must be an integer.")
     elif int(value) < 1:
@@ -37,15 +37,15 @@ def get_positive_number_from_config(config, section, option):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", type=ini_filename_valid, metavar="FILE",
+    parser.add_argument("-c", "--config", type=valid_ini_filename_arg, metavar="FILE",
                         help="An auxiliary configuration file, where %(metavar)s stands for a filename")
     parser.add_argument("-l", "--log", metavar="LEVEL",
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                         help="Record events to a log, where %(metavar)s stands for a log level (DEBUG, INFO, WARNING, "
                              "ERROR, or CRITICAL)")
-    parser.add_argument("-r", "--rounds", type=positive_int_valid, default=50, metavar="NUM",
+    parser.add_argument("-r", "--rounds", type=valid_positive_int_arg, default=50, metavar="NUM",
                         help="The maximum number of rounds, where %(metavar)s denotes an integer")
-    parser.add_argument("-s", "--sheep", type=positive_int_valid, default=15, metavar="NUM",
+    parser.add_argument("-s", "--sheep", type=valid_positive_int_arg, default=15, metavar="NUM",
                         help="The number of sheep, where %(metavar)s denotes an integer;")
     parser.add_argument("-w", "--wait", action="store_true",
                         help="Introduce a pause after displaying basic information about the status of the simulation "
@@ -111,7 +111,8 @@ def main():
 
         # TODO: The task mentions pressing any key to continue instead of just enter, correct if necessary
         if args.wait:
-            input("Press any key to continue...")
+            input("Press Enter to continue...")
+            print()
 
     # TODO: Save the data at the end of every round, not just at the end of the simulation, if necessary
     with open("pos.json", "w", encoding="utf-8") as file:
