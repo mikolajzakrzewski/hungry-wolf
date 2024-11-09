@@ -2,6 +2,7 @@ import json
 import csv
 
 from argparse import ArgumentParser, ArgumentTypeError
+from configparser import ConfigParser
 
 from sheep import Sheep
 from wolf import Wolf
@@ -19,6 +20,19 @@ def positive_int_valid(value):
     elif int(value) < 1:
         raise ArgumentTypeError("The number of rounds must be greater than zero.")
     return int(value)
+
+
+def get_positive_number_from_config(config, section, option):
+    value = config.get(section, option)
+    if not value.lstrip("-").replace(".", "", 1).isdigit():
+        raise ValueError(
+            f"Option '{option}' in section '{section}' of the config file must be a number. Provided: {value}"
+        )
+    elif float(value) <= 0:
+        raise ValueError(
+            f"Option '{option}' in section '{section}' of the config file must be greater than zero. Provided: {value}"
+        )
+    return float(value)
 
 
 def main():
@@ -39,8 +53,11 @@ def main():
     args = parser.parse_args()
 
     if args.config:
-        # TODO: Load the configuration file and use it to set the simulation parameters
-        pass
+        config = ConfigParser()
+        config.read(args.config)
+        sheep_position_limit = get_positive_number_from_config(config, "Sheep", "InitPosLimit")
+        sheep_move_distance = get_positive_number_from_config(config, "Sheep", "MoveDist")
+        wolf_move_distance = get_positive_number_from_config(config, "Wolf", "MoveDist")
     else:
         sheep_position_limit = 10.0
         sheep_move_distance = 0.5
