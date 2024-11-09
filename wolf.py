@@ -1,5 +1,8 @@
+import logging
+
 from functions import euclidean_distance, euclidean_distance_squared
 
+logger = logging.getLogger(__name__)
 
 class Wolf:
     def __init__(self, move_distance):
@@ -20,7 +23,13 @@ class Wolf:
         return self._sated
 
     def get_target(self, sheep_herd):
-        return min(sheep_herd, key=lambda sheep: euclidean_distance_squared(self._position, sheep.position) if sheep is not None else float('inf'))
+        target = min(sheep_herd,
+                     key=lambda sheep: euclidean_distance_squared(
+                         self._position, sheep.position
+                     ) if sheep is not None else float('inf'))
+        logger.debug("The wolf targeted sheep %s with distance to it equal to %s",
+                     target.sequence_number, euclidean_distance(self._position, target.position))
+        return target
 
     def move(self, target_sheep):
         x_wolf, y_wolf = self._position
@@ -32,11 +41,12 @@ class Wolf:
         y_wolf_change = unit_vector[1] * self._move_distance
 
         self._position = (x_wolf + x_wolf_change, y_wolf + y_wolf_change)
+        logger.debug("The wolf moved to position %s", self._position)
 
     def act(self, sheep_herd):
         self._sated = False
         target_sheep = self.get_target(sheep_herd)
-        target_sheep_index = sheep_herd.index(target_sheep)
+        target_sheep_index = target_sheep.sequence_number
         if euclidean_distance(self._position, target_sheep.position) <= self._move_distance:
             sheep_herd[target_sheep_index] = None
             self._position = target_sheep.position

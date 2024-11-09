@@ -1,11 +1,14 @@
 import json
 import csv
+import logging
 
 from argparse import ArgumentParser, ArgumentTypeError
 from configparser import ConfigParser
 
 from sheep import Sheep
 from wolf import Wolf
+
+logger = logging.getLogger(__name__)
 
 
 def valid_ini_filename_arg(filename):
@@ -46,11 +49,16 @@ def main():
     parser.add_argument("-r", "--rounds", type=valid_positive_int_arg, default=50, metavar="NUM",
                         help="The maximum number of rounds, where %(metavar)s denotes an integer")
     parser.add_argument("-s", "--sheep", type=valid_positive_int_arg, default=15, metavar="NUM",
-                        help="The number of sheep, where %(metavar)s denotes an integer;")
+                        help="The number of sheep, where %(metavar)s denotes an integer")
     parser.add_argument("-w", "--wait", action="store_true",
                         help="Introduce a pause after displaying basic information about the status of the simulation "
                              "at the end of each round until a key is pressed")
     args = parser.parse_args()
+
+    if args.log:
+        logging.basicConfig(filename="chase.log", filemode="w", level=args.log)
+    else:
+        logging.disable(logging.CRITICAL)
 
     if args.config:
         config = ConfigParser()
@@ -58,22 +66,18 @@ def main():
         sheep_position_limit = get_positive_number_from_config(config, "Sheep", "InitPosLimit")
         sheep_move_distance = get_positive_number_from_config(config, "Sheep", "MoveDist")
         wolf_move_distance = get_positive_number_from_config(config, "Wolf", "MoveDist")
+        logger.debug("The following values were loaded from %s: "
+                     "Sheep Initial Position Limit (%s), Sheep Move Distance (%s), Wolf Move Distance (%s)",
+                     args.config, sheep_position_limit, sheep_move_distance, wolf_move_distance)
     else:
         sheep_position_limit = 10.0
         sheep_move_distance = 0.5
         wolf_move_distance = 1.0
 
-    if args.log:
-        # TODO: Implement logging with the specified level
-        pass
-    else:
-        # TODO: Implement logging with the specified level
-        pass
-
     max_rounds = args.rounds
     herd_size = args.sheep
 
-    sheep_herd = [Sheep(sheep_position_limit, sheep_move_distance) for _ in range(herd_size)]
+    sheep_herd = [Sheep(sheep_position_limit, sheep_move_distance, seq_num) for seq_num in range(herd_size)]
     wolf = Wolf(wolf_move_distance)
 
     animal_positions_by_round = []
@@ -95,9 +99,9 @@ def main():
         print(f"Position of the wolf: {[round(num, 3) for num in wolf.position]}")
         print(f"Number of alive sheep: {alive_sheep_number}")
         if wolf.sated:
-            print(f"The wolf ate a sheep at index {target_sheep_index}")
+            print(f"The wolf ate sheep {target_sheep_index}")
         else:
-            print(f"The wolf is chasing a sheep at index {target_sheep_index}")
+            print(f"The wolf is chasing sheep {target_sheep_index}")
 
         print()
 
@@ -117,12 +121,14 @@ def main():
     # TODO: Save the data at the end of every round, not just at the end of the simulation, if necessary
     with open("pos.json", "w", encoding="utf-8") as file:
         json.dump(animal_positions_by_round, file, indent=4)
+        logger.debug("The position of each animal was saved to pos.json")
 
     with open("alive.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerow(["round_no", "alive_sheep_no"])
         for round_no, alive_sheep_no in enumerate(alive_sheep_number_by_round, 1):
             writer.writerow([round_no, alive_sheep_no])
+        logger.debug("The round number and the number of alive sheep were saved to alive.csv")
 
 
 if __name__ == "__main__":
