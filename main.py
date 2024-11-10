@@ -78,20 +78,26 @@ def main():
     herd_size = args.sheep
 
     sheep_herd = [Sheep(sheep_position_limit, sheep_move_distance, seq_num) for seq_num in range(herd_size)]
+    logger.info("Initial positions of all sheep were determined")
+
     wolf = Wolf(wolf_move_distance)
 
     animal_positions_by_round = []
     alive_sheep_number_by_round = []
 
     for round_num in range(max_rounds):
+        logger.info("Round %d started", round_num + 1)
         if not any(sheep_herd):
+            logger.info("The simulation terminated - all sheep have been eaten")
             print("All sheep have been eaten.")
-            break
+            return
 
         print(f"Round number: {round_num + 1}")
         for sheep in sheep_herd:
             if sheep is not None:
                 sheep.move()
+
+        logger.info("All alive sheep moved")
 
         target_sheep_index = wolf.act(sheep_herd)
         alive_sheep_number = len([sheep for sheep in sheep_herd if sheep is not None])
@@ -103,6 +109,7 @@ def main():
         else:
             print(f"The wolf is chasing sheep {target_sheep_index}")
 
+        logger.info("Number of alive sheep: %d", alive_sheep_number)
         print()
 
         animal_positions_by_round.append({
@@ -117,6 +124,8 @@ def main():
         if args.wait:
             input("Press Enter to continue...")
             print()
+
+    logger.info("The simulation terminated - predefined maximum number of rounds has been reached")
 
     # TODO: Save the data at the end of every round, not just at the end of the simulation, if necessary
     with open("pos.json", "w", encoding="utf-8") as file:

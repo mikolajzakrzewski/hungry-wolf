@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class Sheep:
     def __init__(self, position_limit, move_distance, sequence_number):
         self._position = tuple(random.uniform(position_limit * -1, position_limit) for _ in range(2))
-        logger.debug("Sheep %d was generated at position %s", sequence_number, self._position)
+        logger.debug("Sheep %d initial position: %s", sequence_number, self._position)
         self._move_distance = move_distance
         self._sequence_number = sequence_number
 

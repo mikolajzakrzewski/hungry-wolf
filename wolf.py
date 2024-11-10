@@ -27,7 +27,7 @@ class Wolf:
                      key=lambda sheep: euclidean_distance_squared(
                          self._position, sheep.position
                      ) if sheep is not None else float('inf'))
-        logger.debug("The wolf targeted sheep %s with distance to it equal to %s",
+        logger.debug("The wolf is closest to sheep %s with distance to it equal to %s",
                      target.sequence_number, euclidean_distance(self._position, target.position))
         return target
 
@@ -41,7 +41,8 @@ class Wolf:
         y_wolf_change = unit_vector[1] * self._move_distance
 
         self._position = (x_wolf + x_wolf_change, y_wolf + y_wolf_change)
-        logger.debug("The wolf moved to position %s", self._position)
+        logger.info("The wolf moved")
+        logger.debug("Wolf position: %s", self._position)
 
     def act(self, sheep_herd):
         self._sated = False
@@ -49,9 +50,11 @@ class Wolf:
         target_sheep_index = target_sheep.sequence_number
         if euclidean_distance(self._position, target_sheep.position) <= self._move_distance:
             sheep_herd[target_sheep_index] = None
+            logger.info("Sheep %s was eaten", target_sheep_index)
             self._position = target_sheep.position
             self._sated = True
         else:
+            logger.info("The wolf is chasing sheep %s", target_sheep_index)
             self.move(target_sheep)
 
         return target_sheep_index
