@@ -1,7 +1,6 @@
 import random
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -31,5 +30,5 @@ class Sheep:
                  'DOWN': (self._position[0], self._position[1] - self._move_distance)}
         direction = random.choice(list(moves.keys()))
         logger.debug("Sheep %d will move %s", self._sequence_number, direction)
-        self._position =  moves[direction]
+        self._position = moves[direction]
         logger.debug("Sheep %d moved to position %s", self._sequence_number, self._position)

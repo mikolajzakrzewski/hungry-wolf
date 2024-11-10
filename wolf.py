@@ -4,6 +4,7 @@ from functions import euclidean_distance, euclidean_distance_squared
 
 logger = logging.getLogger(__name__)
 
+
 class Wolf:
     def __init__(self, move_distance):
         self._position = (0.0, 0.0)

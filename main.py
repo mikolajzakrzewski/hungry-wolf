@@ -11,13 +11,13 @@ from wolf import Wolf
 logger = logging.getLogger(__name__)
 
 
-def valid_ini_filename_arg(filename):
+def validate_ini_filename_argument(filename):
     if not filename.lower().endswith(".ini"):
         raise ArgumentTypeError("The configuration file must be an INI file.")
     return filename
 
 
-def valid_positive_int_arg(value):
+def validate_positive_int_argument(value):
     if not value.lstrip("-").isdigit():
         raise ArgumentTypeError("The number of rounds must be an integer.")
     elif int(value) < 1:
@@ -40,15 +40,15 @@ def get_positive_number_from_config(config, section, option):
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-c", "--config", type=valid_ini_filename_arg, metavar="FILE",
+    parser.add_argument("-c", "--config", type=validate_ini_filename_argument, metavar="FILE",
                         help="An auxiliary configuration file, where %(metavar)s stands for a filename")
     parser.add_argument("-l", "--log", metavar="LEVEL",
                         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                         help="Record events to a log, where %(metavar)s stands for a log level (DEBUG, INFO, WARNING, "
                              "ERROR, or CRITICAL)")
-    parser.add_argument("-r", "--rounds", type=valid_positive_int_arg, default=50, metavar="NUM",
+    parser.add_argument("-r", "--rounds", type=validate_positive_int_argument, default=50, metavar="NUM",
                         help="The maximum number of rounds, where %(metavar)s denotes an integer")
-    parser.add_argument("-s", "--sheep", type=valid_positive_int_arg, default=15, metavar="NUM",
+    parser.add_argument("-s", "--sheep", type=validate_positive_int_argument, default=15, metavar="NUM",
                         help="The number of sheep, where %(metavar)s denotes an integer")
     parser.add_argument("-w", "--wait", action="store_true",
                         help="Introduce a pause after displaying basic information about the status of the simulation "
@@ -83,7 +83,10 @@ def main():
     wolf = Wolf(wolf_move_distance)
 
     animal_positions_by_round = []
-    alive_sheep_number_by_round = []
+
+    with open("alive.csv", "w") as file:
+        writer = csv.writer(file)
+        writer.writerow(["round", "alive_sheep"])
 
     for round_num in range(max_rounds):
         logger.info("Round %d started", round_num + 1)
@@ -118,26 +121,20 @@ def main():
             "sheep_pos": [sheep.position if sheep is not None else None for sheep in sheep_herd]
         })
 
-        alive_sheep_number_by_round.append(alive_sheep_number)
+        with open("pos.json", "w", encoding="utf-8") as file:
+            json.dump(animal_positions_by_round, file, indent=4)
+            logger.debug("The position of each animal was saved to pos.json")
 
-        # TODO: The task mentions pressing any key to continue instead of just enter, correct if necessary
+        with open("alive.csv", "a") as file:
+            writer = csv.writer(file)
+            writer.writerow([round_num + 1, alive_sheep_number])
+            logger.debug("The round number and the number of alive sheep were saved to alive.csv")
+
         if args.wait:
             input("Press Enter to continue...")
             print()
 
     logger.info("The simulation terminated - predefined maximum number of rounds has been reached")
-
-    # TODO: Save the data at the end of every round, not just at the end of the simulation, if necessary
-    with open("pos.json", "w", encoding="utf-8") as file:
-        json.dump(animal_positions_by_round, file, indent=4)
-        logger.debug("The position of each animal was saved to pos.json")
-
-    with open("alive.csv", "w") as file:
-        writer = csv.writer(file)
-        writer.writerow(["round_no", "alive_sheep_no"])
-        for round_no, alive_sheep_no in enumerate(alive_sheep_number_by_round, 1):
-            writer.writerow([round_no, alive_sheep_no])
-        logger.debug("The round number and the number of alive sheep were saved to alive.csv")
 
 
 if __name__ == "__main__":
