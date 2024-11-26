@@ -1,6 +1,7 @@
 import json
 import csv
 import logging
+import os.path
 
 from argparse import ArgumentParser, ArgumentTypeError
 from configparser import ConfigParser
@@ -14,14 +15,16 @@ logger = logging.getLogger(__name__)
 def validate_ini_filename_argument(filename):
     if not filename.lower().endswith(".ini"):
         raise ArgumentTypeError("The configuration file must be an INI file.")
+    if not os.path.isfile(filename):
+        raise ArgumentTypeError("The configuration file doesn't exist.")
     return filename
 
 
 def validate_positive_int_argument(value):
     if not value.lstrip("-").isdigit():
-        raise ArgumentTypeError("The number of rounds must be an integer.")
+        raise ArgumentTypeError("The number must be an integer.")
     elif int(value) < 1:
-        raise ArgumentTypeError("The number of rounds must be greater than zero.")
+        raise ArgumentTypeError("The number must be greater than zero.")
     return int(value)
 
 
