@@ -37,7 +37,7 @@ class Wolf:
         x_sheep, y_sheep = target_sheep.position
         wolf_sheep_distance = euclidean_distance(self._position, target_sheep.position)
 
-        unit_vector = [(x_sheep - x_wolf) / wolf_sheep_distance, (y_sheep - y_wolf) / wolf_sheep_distance]
+        unit_vector = ((x_sheep - x_wolf) / wolf_sheep_distance, (y_sheep - y_wolf) / wolf_sheep_distance)
         x_wolf_change = unit_vector[0] * self._move_distance
         y_wolf_change = unit_vector[1] * self._move_distance
 
